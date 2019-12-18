@@ -39,31 +39,43 @@ func LoadMenu() error {
 	}
 }
 
-func WalletMenu() {
+func WalletMenu() error {
 	// Looping until user chooses "Exit", or a connectivity error
 	// occurs.
-	prompt := promptui.Select{
-		Label: "Select action",
-		Items: []string{"Transfer DUSK", "Stake DUSK", "Bid DUSK", "Show Balance", "Show Address", "Exit"},
-	}
+	for {
+		prompt := promptui.Select{
+			Label: "Select action",
+			Items: []string{"Transfer DUSK", "Stake DUSK", "Bid DUSK", "Show Balance", "Show Address", "Exit"},
+		}
 
-	_, result, err := prompt.Run()
-	if err != nil {
-		panic(err)
-	}
+		_, result, err := prompt.Run()
+		if err != nil {
+			panic(err)
+		}
 
-	switch result {
-	case "Transfer DUSK":
-		fmt.Println("Hello, world!")
-	case "Stake DUSK":
-		fmt.Println("Hello, world!")
-	case "Bid DUSK":
-		fmt.Println("Hello, world!")
-	case "Show Balance":
-		fmt.Println("Hello, world!")
-	case "Show Address":
-		fmt.Println("Hello, world!")
-	case "Exit":
-		os.Exit(0)
+		switch result {
+		case "Transfer DUSK":
+			return transferDusk()
+		case "Stake DUSK":
+			return stakeDusk()
+		case "Bid DUSK":
+			return bidDusk()
+		case "Show Balance":
+			balance, err := client.GetBalance()
+			if err != nil {
+				return err
+			}
+
+			fmt.Fprintln(os.Stdout, balance)
+		case "Show Address":
+			address, err := client.GetAddress()
+			if err != nil {
+				return err
+			}
+
+			fmt.Fprintln(os.Stdout, address)
+		case "Exit":
+			os.Exit(0)
+		}
 	}
 }

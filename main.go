@@ -25,9 +25,8 @@ func main() {
 		}
 
 		// Once loaded, we open the menu for wallet operations.
-		// The only reason this function returns is when we have lost
-		// connection to the node. Hence, we have no return value
-		// to check.
-		prompt.WalletMenu()
+		if err := prompt.WalletMenu(); err != nil {
+			// TODO: log
+		}
 	}
 }
