@@ -15,7 +15,7 @@ func LoadMenu() error {
 	for {
 		prompt := promptui.Select{
 			Label: "Select action",
-			Items: []string{"Create Wallet", "Load Wallet", "Load Wallet From Seed", "Exit"},
+			Items: []string{"Load Wallet", "Create Wallet", "Load Wallet From Seed", "Exit"},
 		}
 
 		_, result, err := prompt.Run()
@@ -25,12 +25,12 @@ func LoadMenu() error {
 		}
 
 		switch result {
-		case "Create Wallet":
-			fmt.Println("Hello, world!")
 		case "Load Wallet":
-			fmt.Println("Hello, world!")
+			return loadWallet()
+		case "Create Wallet":
+			return createWallet()
 		case "Load Wallet From Seed":
-			fmt.Println("Hello, world!")
+			return loadFromSeed()
 		case "Exit":
 			// Simply exiting here saves us from having to write a
 			// lot of complicated handling code in the main function.
