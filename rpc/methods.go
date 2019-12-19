@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"time"
 
@@ -14,7 +13,7 @@ import (
 )
 
 func IsWalletLoaded() (bool, error) {
-	return true, nil
+	return false, nil
 }
 
 func LoadWallet(password string) (string, error) {
@@ -122,7 +121,7 @@ func GetAddress() (string, error) {
 }
 
 func createRequest(body io.Reader) *http.Request {
-	req, err := http.NewRequest("POST", viper.Get("rpc.address").(string), body)
+	req, err := http.NewRequest("POST", "http://"+viper.Get("rpc.address").(string), body)
 	if err != nil {
 		panic(err)
 	}
@@ -136,22 +135,17 @@ func createRequest(body io.Reader) *http.Request {
 // Create an HTTP client for the correct network type.
 func createClient() *http.Client {
 	return &http.Client{
-		Transport: &http.Transport{
-			Dial: func(string, string) (net.Conn, error) {
-				return net.Dial(viper.Get("rpc.network").(string), viper.Get("rpc.address").(string))
-			},
-		},
 		Timeout: 5 * time.Second,
 	}
 }
 
-func unmarshalResponse(resp io.ReadCloser) (map[string]string, error) {
+func unmarshalResponse(resp io.ReadCloser) (map[string]interface{}, error) {
 	body, err := ioutil.ReadAll(resp)
 	if err != nil {
 		return nil, &NetworkError{err}
 	}
 
-	var result map[string]string
+	var result map[string]interface{}
 	if err := json.Unmarshal(body, &result); err != nil {
 		return nil, &NetworkError{err}
 	}
@@ -172,9 +166,9 @@ func handleRequest(body []byte) (string, error) {
 		return "", err
 	}
 
-	if result["error"] != "" {
-		return result["error"], &MethodError{errors.New(result["error"])}
+	if result["error"] != "null" {
+		return result["error"].(string), &MethodError{errors.New(result["error"].(string))}
 	}
 
-	return result["result"], nil
+	return result["result"].(string), nil
 }
