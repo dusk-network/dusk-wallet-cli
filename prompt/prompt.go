@@ -38,6 +38,7 @@ func LoadMenu() error {
 		// On network errors, we return them to the main function.
 		// This will re-establish the connection if possible.
 		if nerr, ok := err.(*rpc.NetworkError); ok {
+			fmt.Fprintln(os.Stdout, nerr.Error())
 			return nerr
 		}
 
@@ -57,6 +58,7 @@ func WalletMenu() error {
 		prompt := promptui.Select{
 			Label: "Select action",
 			Items: []string{"Transfer DUSK", "Stake DUSK", "Bid DUSK", "Show Balance", "Show Address", "Exit"},
+			Size:  6,
 		}
 
 		_, result, err := prompt.Run()
