@@ -29,6 +29,7 @@ func loadFromSeed() (string, error) {
 	prompt := promptui.Prompt{
 		Label:    "Seed",
 		Validate: validate,
+		Mask:     '*',
 	}
 
 	seed, err := prompt.Run()
