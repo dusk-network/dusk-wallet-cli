@@ -38,7 +38,6 @@ func LoadMenu() error {
 		// On network errors, we return them to the main function.
 		// This will re-establish the connection if possible.
 		if nerr, ok := err.(*rpc.NetworkError); ok {
-			fmt.Fprintln(os.Stdout, nerr.Error())
 			return nerr
 		}
 

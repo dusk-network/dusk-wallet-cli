@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/dusk-network/dusk-wallet-cli/prompt"
 	"github.com/dusk-network/dusk-wallet-cli/rpc"
 	"github.com/spf13/viper"
@@ -25,14 +28,14 @@ func main() {
 				// If we get an error from `LoadMenu`, it means we lost
 				// our connection to the node. We will restart the loop
 				// to attempt to regain our connection.
-				// TODO: log
+				fmt.Fprintln(os.Stdout, err.Error())
 				continue
 			}
 		}
 
 		// Once loaded, we open the menu for wallet operations.
 		if err := prompt.WalletMenu(); err != nil {
-			// TODO: log
+			fmt.Fprintln(os.Stdout, err.Error())
 		}
 	}
 }
@@ -43,6 +46,7 @@ func initConfig() {
 	viper.AddConfigPath("$HOME/.dusk/")
 
 	if err := viper.ReadInConfig(); err != nil {
-		panic(err)
+		fmt.Fprintln(os.Stdout, "Config file not found. Please place dusk-wallet-cli in the same directory as your dusk.toml file.")
+		os.Exit(0)
 	}
 }
