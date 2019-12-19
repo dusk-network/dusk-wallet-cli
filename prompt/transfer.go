@@ -3,11 +3,12 @@ package prompt
 import (
 	"strconv"
 
+	"github.com/dusk-network/dusk-wallet-cli/rpc"
 	"github.com/dusk-network/dusk-wallet/key"
 	"github.com/manifoldco/promptui"
 )
 
-func transferDusk() error {
+func transferDusk() (string, error) {
 	amount := getAmount()
 
 	validateAddress := func(input string) error {
@@ -27,22 +28,22 @@ func transferDusk() error {
 
 	address, err := addressPrompt.Run()
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return client.TransferDUSK(amount, address)
+	return rpc.TransferDUSK(amount, address)
 }
 
-func bidDusk() error {
+func bidDusk() (string, error) {
 	amount := getAmount()
 	lockTime := getLockTime()
-	return client.BidDUSK(amount, lockTime)
+	return rpc.BidDUSK(amount, lockTime)
 }
 
-func stakeDusk() error {
+func stakeDusk() (string, error) {
 	amount := getAmount()
 	lockTime := getLockTime()
-	return client.StakeDUSK(amount, lockTime)
+	return rpc.StakeDUSK(amount, lockTime)
 }
 
 func getAmount() string {

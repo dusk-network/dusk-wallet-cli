@@ -3,20 +3,21 @@ package prompt
 import (
 	"errors"
 
+	"github.com/dusk-network/dusk-wallet-cli/rpc"
 	"github.com/manifoldco/promptui"
 )
 
-func loadWallet() error {
+func loadWallet() (string, error) {
 	pw := getPassword()
-	return client.LoadWallet(pw)
+	return rpc.LoadWallet(pw)
 }
 
-func createWallet() error {
+func createWallet() (string, error) {
 	pw := getPassword()
-	return client.LoadWallet(pw)
+	return rpc.CreateWallet(pw)
 }
 
-func loadFromSeed() error {
+func loadFromSeed() (string, error) {
 	validate := func(input string) error {
 		if len(input) < 64 {
 			return errors.New("Seed must be 64 characters or more")
@@ -36,7 +37,7 @@ func loadFromSeed() error {
 	}
 
 	pw := getPassword()
-	client.LoadWalletFromSeed(seed, pw)
+	return rpc.LoadWalletFromSeed(seed, pw)
 }
 
 func getPassword() string {

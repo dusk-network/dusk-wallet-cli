@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/dusk-network/dusk-wallet-cli/rpc"
 	"github.com/manifoldco/promptui"
 )
 
 // LoadMenu opens the prompt for loading a wallet. Returns an error
 // in case of a connectivity problem with the node.
 func LoadMenu() error {
-	// Looping until user chooses "Exit", successfully loads a wallet,
-	// or a connectivity error occurs.
 	for {
 		prompt := promptui.Select{
 			Label: "Select action",
@@ -24,24 +23,36 @@ func LoadMenu() error {
 			panic(err)
 		}
 
+		var resp string
 		switch result {
 		case "Load Wallet":
-			return loadWallet()
+			resp, err = loadWallet()
 		case "Create Wallet":
-			return createWallet()
+			resp, err = createWallet()
 		case "Load Wallet From Seed":
-			return loadFromSeed()
+			resp, err = loadFromSeed()
 		case "Exit":
-			// Simply exiting here saves us from having to write a
-			// lot of complicated handling code in the main function.
 			os.Exit(0)
+		}
+
+		// On network errors, we return them to the main function.
+		// This will re-establish the connection if possible.
+		if nerr, ok := err.(*rpc.NetworkError); ok {
+			return nerr
+		}
+
+		fmt.Fprintln(os.Stdout, resp)
+		// If the method call was successful, we can break out and
+		// go to the wallet menu.
+		if err == nil {
+			return nil
 		}
 	}
 }
 
+// WalletMenu opens the prompt for doing wallet operations. Returns an
+// rpc.NetworkError in case of request failure.
 func WalletMenu() error {
-	// Looping until user chooses "Exit", or a connectivity error
-	// occurs.
 	for {
 		prompt := promptui.Select{
 			Label: "Select action",
@@ -53,29 +64,29 @@ func WalletMenu() error {
 			panic(err)
 		}
 
+		var resp string
 		switch result {
 		case "Transfer DUSK":
-			return transferDusk()
+			resp, err = transferDusk()
 		case "Stake DUSK":
-			return stakeDusk()
+			resp, err = stakeDusk()
 		case "Bid DUSK":
-			return bidDusk()
+			resp, err = bidDusk()
 		case "Show Balance":
-			balance, err := client.GetBalance()
-			if err != nil {
-				return err
-			}
-
-			fmt.Fprintln(os.Stdout, balance)
+			resp, err = rpc.GetBalance()
 		case "Show Address":
-			address, err := client.GetAddress()
-			if err != nil {
-				return err
-			}
-
-			fmt.Fprintln(os.Stdout, address)
+			resp, err = rpc.GetAddress()
 		case "Exit":
 			os.Exit(0)
 		}
+
+		if nerr, ok := err.(*rpc.NetworkError); ok {
+			return nerr
+		}
+
+		fmt.Fprintln(os.Stdout, resp)
+		// We don't check for any other error type. Whether or not the
+		// method call failed, we still want to return to this same
+		// menu in the end.
 	}
 }
