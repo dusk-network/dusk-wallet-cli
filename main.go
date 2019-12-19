@@ -1,12 +1,18 @@
 package main
 
-import "github.com/dusk-network/dusk-wallet-cli/prompt"
+import (
+	"github.com/dusk-network/dusk-wallet-cli/prompt"
+	"github.com/dusk-network/dusk-wallet-cli/rpc"
+	"github.com/spf13/viper"
+)
 
 func main() {
+	initConfig()
+
 	for {
 		// First, establish that the node is running by asking it about
 		// it's wallet state.
-		loaded, err := client.IsWalletLoaded()
+		loaded, err := rpc.IsWalletLoaded()
 		if err != nil {
 			// TODO: implement checking on intervals up to a limit
 			continue
@@ -28,5 +34,15 @@ func main() {
 		if err := prompt.WalletMenu(); err != nil {
 			// TODO: log
 		}
+	}
+}
+
+func initConfig() {
+	viper.SetConfigName("dusk")
+	viper.AddConfigPath(".")
+	viper.AddConfigPath("$HOME/.dusk/")
+
+	if err := viper.ReadInConfig(); err != nil {
+		panic(err)
 	}
 }
