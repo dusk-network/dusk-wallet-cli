@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"time"
 
@@ -121,7 +122,7 @@ func GetAddress() (string, error) {
 }
 
 func createRequest(body io.Reader) *http.Request {
-	req, err := http.NewRequest("POST", viper.Get("rpc.network").(string), body)
+	req, err := http.NewRequest("POST", viper.Get("rpc.address").(string), body)
 	if err != nil {
 		panic(err)
 	}
@@ -132,8 +133,14 @@ func createRequest(body io.Reader) *http.Request {
 	return req
 }
 
+// Create an HTTP client for the correct network type.
 func createClient() *http.Client {
 	return &http.Client{
+		Transport: &http.Transport{
+			Dial: func(string, string) (net.Conn, error) {
+				return net.Dial(viper.Get("rpc.network").(string), viper.Get("rpc.address").(string))
+			},
+		},
 		Timeout: 5 * time.Second,
 	}
 }
