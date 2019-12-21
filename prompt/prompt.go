@@ -56,7 +56,7 @@ func WalletMenu() error {
 	for {
 		prompt := promptui.Select{
 			Label: "Select action",
-			Items: []string{"Transfer DUSK", "Stake DUSK", "Bid DUSK", "Show Balance", "Show Address", "Exit"},
+			Items: []string{"Transfer DUSK", "Stake DUSK", "Bid DUSK", "Show Balance", "Show Address", "Show Transaction History", "Exit"},
 			Size:  6,
 		}
 
@@ -77,6 +77,8 @@ func WalletMenu() error {
 			resp, err = rpc.GetBalance()
 		case "Show Address":
 			resp, err = rpc.GetAddress()
+		case "Show Transaction History":
+			resp, err = rpc.GetTxHistory()
 		case "Exit":
 			os.Exit(0)
 		}

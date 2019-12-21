@@ -120,6 +120,19 @@ func GetAddress() (string, error) {
 	return handleRequest(body)
 }
 
+func GetTxHistory() (string, error) {
+	body, err := json.Marshal(map[string]interface{}{
+		"method": "txhistory",
+		"params": []string{},
+	})
+	if err != nil {
+		// Should always be able to marshal a hardcoded request
+		panic(err)
+	}
+
+	return handleRequest(body)
+}
+
 func createRequest(body io.Reader) *http.Request {
 	req, err := http.NewRequest("POST", "http://"+viper.Get("rpc.address").(string), body)
 	if err != nil {
