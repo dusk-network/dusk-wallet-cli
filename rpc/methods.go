@@ -142,6 +142,19 @@ func GetTxHistory() (string, error) {
 	return handleRequest(body)
 }
 
+func AutomateConsensusTxs() (string, error) {
+	body, err := json.Marshal(map[string]interface{}{
+		"method": "automateconsensustxs",
+		"params": []string{},
+	})
+	if err != nil {
+		// Should always be able to marshal a hardcoded request
+		panic(err)
+	}
+
+	return handleRequest(body)
+}
+
 func createRequest(body io.Reader) *http.Request {
 	req, err := http.NewRequest("POST", "http://"+viper.Get("rpc.address").(string), body)
 	if err != nil {
