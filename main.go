@@ -19,7 +19,7 @@ func main() {
 		if err != nil {
 			// TODO: implement checking on intervals up to a limit
 			fmt.Fprintln(os.Stdout, err)
-			continue
+			return
 		}
 
 		// If we have no wallet loaded, we open the menu to load or
