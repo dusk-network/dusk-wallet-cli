@@ -18,7 +18,7 @@ func main() {
 	if err != nil {
 		// TODO: implement checking on intervals up to a limit
 		fmt.Fprintln(os.Stdout, err)
-		return
+		os.Exit(1)
 	}
 
 	// If we have no wallet loaded, we open the menu to load or
@@ -28,13 +28,14 @@ func main() {
 			// If we get an error from `LoadMenu`, it means we lost
 			// our connection to the node.
 			fmt.Fprintln(os.Stdout, err.Error())
-			return
+			os.Exit(1)
 		}
 	}
 
 	// Once loaded, we open the menu for wallet operations.
 	if err := prompt.WalletMenu(); err != nil {
 		fmt.Fprintln(os.Stdout, err.Error())
+		os.Exit(1)
 	}
 }
 
