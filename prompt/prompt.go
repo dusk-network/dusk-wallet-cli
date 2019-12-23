@@ -54,6 +54,13 @@ func LoadMenu() error {
 // rpc.NetworkError in case of request failure.
 func WalletMenu() error {
 	for {
+		// Get sync progress first and print it
+		resp, err := rpc.GetSyncProgress()
+		if nerr, ok := err.(*rpc.NetworkError); ok {
+			return nerr
+		}
+		fmt.Fprintln(os.Stdout, "Sync progress: "+resp+"%")
+
 		prompt := promptui.Select{
 			Label: "Select action",
 			Items: []string{"Transfer DUSK", "Stake DUSK", "Bid DUSK", "Show Balance", "Show Address", "Show Transaction History", "Automate Consensus Participation", "Exit"},
@@ -65,7 +72,6 @@ func WalletMenu() error {
 			panic(err)
 		}
 
-		var resp string
 		switch result {
 		case "Transfer DUSK":
 			resp, err = transferDusk()
