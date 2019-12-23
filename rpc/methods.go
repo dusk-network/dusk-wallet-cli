@@ -14,7 +14,7 @@ import (
 
 func IsWalletLoaded() (string, error) {
 	body, err := json.Marshal(map[string]interface{}{
-		"method": "iswalletloaded",
+		"method": "walletstatus",
 		"params": []string{},
 	})
 	if err != nil {
