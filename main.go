@@ -12,32 +12,29 @@ import (
 func main() {
 	initConfig()
 
-	for {
-		// First, establish that the node is running by asking it about
-		// it's wallet state.
-		loaded, err := rpc.IsWalletLoaded()
-		if err != nil {
-			// TODO: implement checking on intervals up to a limit
-			fmt.Fprintln(os.Stdout, err)
+	// First, establish that the node is running by asking it about
+	// it's wallet state.
+	loaded, err := rpc.IsWalletLoaded()
+	if err != nil {
+		// TODO: implement checking on intervals up to a limit
+		fmt.Fprintln(os.Stdout, err)
+		return
+	}
+
+	// If we have no wallet loaded, we open the menu to load or
+	// create one.
+	if loaded == "false" {
+		if err := prompt.LoadMenu(); err != nil {
+			// If we get an error from `LoadMenu`, it means we lost
+			// our connection to the node.
+			fmt.Fprintln(os.Stdout, err.Error())
 			return
 		}
+	}
 
-		// If we have no wallet loaded, we open the menu to load or
-		// create one.
-		if loaded == "false" {
-			if err := prompt.LoadMenu(); err != nil {
-				// If we get an error from `LoadMenu`, it means we lost
-				// our connection to the node. We will restart the loop
-				// to attempt to regain our connection.
-				fmt.Fprintln(os.Stdout, err.Error())
-				continue
-			}
-		}
-
-		// Once loaded, we open the menu for wallet operations.
-		if err := prompt.WalletMenu(); err != nil {
-			fmt.Fprintln(os.Stdout, err.Error())
-		}
+	// Once loaded, we open the menu for wallet operations.
+	if err := prompt.WalletMenu(); err != nil {
+		fmt.Fprintln(os.Stdout, err.Error())
 	}
 }
 
