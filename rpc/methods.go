@@ -12,8 +12,17 @@ import (
 	"github.com/spf13/viper"
 )
 
-func IsWalletLoaded() (bool, error) {
-	return false, nil
+func IsWalletLoaded() (string, error) {
+	body, err := json.Marshal(map[string]interface{}{
+		"method": "iswalletloaded",
+		"params": []string{},
+	})
+	if err != nil {
+		// Should always be able to marshal a hardcoded request
+		panic(err)
+	}
+
+	return handleRequest(body)
 }
 
 func LoadWallet(password string) (string, error) {

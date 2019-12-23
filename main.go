@@ -23,7 +23,7 @@ func main() {
 
 		// If we have no wallet loaded, we open the menu to load or
 		// create one.
-		if !loaded {
+		if loaded == "0" {
 			if err := prompt.LoadMenu(); err != nil {
 				// If we get an error from `LoadMenu`, it means we lost
 				// our connection to the node. We will restart the loop
