@@ -18,12 +18,13 @@ func main() {
 		loaded, err := rpc.IsWalletLoaded()
 		if err != nil {
 			// TODO: implement checking on intervals up to a limit
+			fmt.Fprintln(os.Stdout, err)
 			continue
 		}
 
 		// If we have no wallet loaded, we open the menu to load or
 		// create one.
-		if loaded == "0" {
+		if loaded == "false" {
 			if err := prompt.LoadMenu(); err != nil {
 				// If we get an error from `LoadMenu`, it means we lost
 				// our connection to the node. We will restart the loop
