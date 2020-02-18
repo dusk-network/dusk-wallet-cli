@@ -1,16 +1,21 @@
 package prompt
 
 import (
+	"context"
+	"encoding/hex"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
+	"time"
 
-	"github.com/dusk-network/dusk-wallet-cli/rpc"
+	"github.com/dusk-network/dusk-protobuf/autogen/go/node"
+	"github.com/dusk-network/dusk-wallet/wallet"
 	"github.com/manifoldco/promptui"
 )
 
-// LoadMenu opens the prompt for loading a wallet. Returns an error
-// in case of a connectivity problem with the node.
-func LoadMenu() error {
+// LoadMenu opens the prompt for loading a wallet.
+func LoadMenu(client node.NodeClient) error {
 	for {
 		prompt := promptui.Select{
 			Label: "Select action",
@@ -23,43 +28,35 @@ func LoadMenu() error {
 			panic(err)
 		}
 
-		var resp string
+		var resp *node.LoadResponse
 		switch result {
 		case "Load Wallet":
-			resp, err = loadWallet()
+			resp, err = loadWallet(client)
 		case "Create Wallet":
-			resp, err = createWallet()
+			resp, err = createWallet(client)
 		case "Load Wallet From Seed":
-			resp, err = loadFromSeed()
+			resp, err = loadFromSeed(client)
 		case "Exit":
 			os.Exit(0)
 		}
 
-		// On network errors, we return them to the main function.
-		// This will re-establish the connection if possible.
-		if nerr, ok := err.(*rpc.NetworkError); ok {
-			return nerr
+		if err != nil {
+			return err
 		}
 
-		fmt.Fprintln(os.Stdout, resp)
-		// If the method call was successful, we can break out and
-		// go to the wallet menu.
-		if err == nil {
-			return nil
-		}
+		fmt.Fprintln(os.Stdout, string(resp.Key.PublicKey))
 	}
 }
 
-// WalletMenu opens the prompt for doing wallet operations. Returns an
-// rpc.NetworkError in case of request failure.
-func WalletMenu() error {
+// WalletMenu opens the prompt for doing wallet operations.
+func WalletMenu(client node.NodeClient) error {
 	for {
 		// Get sync progress first and print it
-		resp, err := rpc.GetSyncProgress()
-		if nerr, ok := err.(*rpc.NetworkError); ok {
-			return nerr
+		resp, err := client.GetSyncProgress(context.Background(), &node.EmptyRequest{})
+		if err != nil {
+			return err
 		}
-		fmt.Fprintln(os.Stdout, "Sync progress: "+resp+"%")
+		fmt.Fprintf(os.Stdout, "Sync progress: %.2f%", resp.Progress)
 
 		prompt := promptui.Select{
 			Label: "Select action",
@@ -72,32 +69,85 @@ func WalletMenu() error {
 			panic(err)
 		}
 
+		var res string
 		switch result {
 		case "Transfer DUSK":
-			resp, err = transferDusk()
+			resp, err := transferDusk(client)
+			if err != nil {
+				return err
+			}
+
+			res = "Tx hash: " + hex.EncodeToString(resp.Hash)
 		case "Stake DUSK":
-			resp, err = stakeDusk()
+			resp, err := stakeDusk(client)
+			if err != nil {
+				return err
+			}
+
+			res = "Tx hash: " + hex.EncodeToString(resp.Hash)
 		case "Bid DUSK":
-			resp, err = bidDusk()
+			resp, err := bidDusk(client)
+			if err != nil {
+				return err
+			}
+
+			res = "Tx hash: " + hex.EncodeToString(resp.Hash)
 		case "Show Balance":
-			resp, err = rpc.GetBalance()
+			resp, err := client.GetBalance(context.Background(), &node.EmptyRequest{})
+			if err != nil {
+				return err
+			}
+
+			res = fmt.Sprintf("Unlocked balance: %.8f\nLocked balance: %.8f\n", float64(resp.UnlockedBalance)/float64(wallet.DUSK), float64(resp.LockedBalance)/float64(wallet.DUSK))
 		case "Show Address":
-			resp, err = rpc.GetAddress()
+			resp, err := client.GetAddress(context.Background(), &node.EmptyRequest{})
+			if err != nil {
+				return err
+			}
+
+			res = "Address: " + string(resp.Key.PublicKey)
 		case "Show Transaction History":
-			resp, err = rpc.GetTxHistory()
+			resp, err := client.GetTxHistory(context.Background(), &node.EmptyRequest{})
+			if err != nil {
+				return err
+			}
+
+			s := formatRecords(resp)
+			res = s.String()
 		case "Automate Consensus Participation":
-			resp, err = rpc.AutomateConsensusTxs()
+			resp, err := client.AutomateConsensusTxs(context.Background(), &node.EmptyRequest{})
+			if err != nil {
+				return err
+			}
+
+			res = resp.Response
 		case "Exit":
 			os.Exit(0)
 		}
 
-		if nerr, ok := err.(*rpc.NetworkError); ok {
-			return nerr
-		}
-
-		fmt.Fprintln(os.Stdout, resp)
-		// We don't check for any other error type. Whether or not the
-		// method call failed, we still want to return to this same
-		// menu in the end.
+		fmt.Fprintln(os.Stdout, res)
 	}
+}
+
+func formatRecords(resp *node.TxHistoryResponse) strings.Builder {
+	s := strings.Builder{}
+	for _, record := range resp.Records {
+		if record.Direction == node.Direction_IN {
+			s.WriteString("IN / ")
+		} else {
+			s.WriteString("OUT / ")
+		}
+		// Height
+		s.WriteString(strconv.FormatUint(record.Height, 10) + " / ")
+		// Time
+		s.WriteString(time.Unix(record.Timestamp, 0).Format(time.UnixDate) + " / ")
+		// Amount
+		s.WriteString(fmt.Sprintf("%.8f DUSK", float64(record.Amount)/float64(wallet.DUSK)) + " / ")
+		// Unlock height
+		s.WriteString("Unlocks at " + strconv.FormatUint(record.UnlockHeight, 10) + " / ")
+
+		s.WriteString("\n")
+	}
+
+	return s
 }

@@ -1,23 +1,24 @@
 package prompt
 
 import (
+	"context"
 	"errors"
 
-	"github.com/dusk-network/dusk-wallet-cli/rpc"
+	"github.com/dusk-network/dusk-protobuf/autogen/go/node"
 	"github.com/manifoldco/promptui"
 )
 
-func loadWallet() (string, error) {
+func loadWallet(client node.NodeClient) (*node.LoadResponse, error) {
 	pw := getPassword()
-	return rpc.LoadWallet(pw)
+	return client.LoadWallet(context.Background(), &node.LoadRequest{Password: pw})
 }
 
-func createWallet() (string, error) {
+func createWallet(client node.NodeClient) (*node.LoadResponse, error) {
 	pw := getPassword()
-	return rpc.CreateWallet(pw)
+	return client.CreateWallet(context.Background(), &node.CreateRequest{Password: pw})
 }
 
-func loadFromSeed() (string, error) {
+func loadFromSeed(client node.NodeClient) (*node.LoadResponse, error) {
 	validate := func(input string) error {
 		if len(input) < 64 {
 			return errors.New("Seed must be 64 characters or more")
@@ -38,7 +39,7 @@ func loadFromSeed() (string, error) {
 	}
 
 	pw := getPassword()
-	return rpc.LoadWalletFromSeed(seed, pw)
+	return client.CreateFromSeed(context.Background(), &node.CreateRequest{Password: pw, Seed: []byte(seed)})
 }
 
 func getPassword() string {
