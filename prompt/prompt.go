@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/dusk-network/dusk-protobuf/autogen/go/node"
-	"github.com/dusk-network/dusk-wallet/wallet"
+	"github.com/dusk-network/dusk-wallet/v2/wallet"
 	"github.com/manifoldco/promptui"
 )
 
