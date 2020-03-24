@@ -1,14 +1,16 @@
 package prompt
 
 import (
+	"context"
 	"strconv"
 
-	"github.com/dusk-network/dusk-wallet-cli/rpc"
-	"github.com/dusk-network/dusk-wallet/key"
+	"github.com/dusk-network/dusk-protobuf/autogen/go/node"
+	"github.com/dusk-network/dusk-wallet/v2/key"
+	"github.com/dusk-network/dusk-wallet/v2/wallet"
 	"github.com/manifoldco/promptui"
 )
 
-func transferDusk() (string, error) {
+func transferDusk(client node.NodeClient) (*node.TransferResponse, error) {
 	amount := getAmount()
 
 	validateAddress := func(input string) error {
@@ -28,25 +30,25 @@ func transferDusk() (string, error) {
 
 	address, err := addressPrompt.Run()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return rpc.TransferDUSK(amount, address)
+	return client.Transfer(context.Background(), &node.TransferRequest{Amount: amount, Address: []byte(address)})
 }
 
-func bidDusk() (string, error) {
+func bidDusk(client node.NodeClient) (*node.TransferResponse, error) {
 	amount := getAmount()
 	lockTime := getLockTime()
-	return rpc.BidDUSK(amount, lockTime)
+	return client.SendBid(context.Background(), &node.ConsensusTxRequest{Amount: amount, LockTime: lockTime})
 }
 
-func stakeDusk() (string, error) {
+func stakeDusk(client node.NodeClient) (*node.TransferResponse, error) {
 	amount := getAmount()
 	lockTime := getLockTime()
-	return rpc.StakeDUSK(amount, lockTime)
+	return client.SendStake(context.Background(), &node.ConsensusTxRequest{Amount: amount, LockTime: lockTime})
 }
 
-func getAmount() string {
+func getAmount() uint64 {
 	validate := func(input string) error {
 		if _, err := strconv.ParseFloat(input, 64); err != nil {
 			return err
@@ -60,15 +62,17 @@ func getAmount() string {
 		Validate: validate,
 	}
 
-	amount, err := prompt.Run()
+	amountString, err := prompt.Run()
 	if err != nil {
 		panic(err)
 	}
 
+	amountFloat, _ := strconv.ParseFloat(amountString, 64)
+	amount := uint64(amountFloat * float64(wallet.DUSK))
 	return amount
 }
 
-func getLockTime() string {
+func getLockTime() uint64 {
 	validate := func(input string) error {
 		if _, err := strconv.Atoi(input); err != nil {
 			return err
@@ -82,10 +86,11 @@ func getLockTime() string {
 		Validate: validate,
 	}
 
-	lockTime, err := prompt.Run()
+	lockTimeString, err := prompt.Run()
 	if err != nil {
 		panic(err)
 	}
 
-	return lockTime
+	lockTime, _ := strconv.Atoi(lockTimeString)
+	return uint64(lockTime)
 }
